@@ -84,12 +84,21 @@ function advance(dt) {
   game.score += Math.max(0, Math.floor(p.growth / 24 * dt)); syncHud();
 }
 function die() { game.lives--; sfx.death(); music.pause(); if (game.lives <= 0) { game.over = true; game.running = false; stateEl.textContent = 'SYSTEM FAIL'; startButton.textContent = 'RETRY'; if (game.score > best) { best = game.score; localStorage.setItem('mawline-best', String(best)); } } else { game.running = false; game.dying = 1.15; stateEl.textContent = 'REBUILD'; } syncHud(); }
-function start() { if (game.over) freshGame(); game.running = true; game.paused = false; game.born = performance.now(); stateEl.textContent = 'RUN'; startButton.textContent = 'PAUSE'; music.play(); }
+function start() { if (game.over) freshGame(); sfx.coin(); game.running = true; game.paused = false; game.born = performance.now(); stateEl.textContent = 'RUN'; startButton.textContent = 'PAUSE'; music.play(); }
 function syncHud() { scoreEl.textContent = String(Math.floor(game.score)).padStart(6, '0'); bestEl.textContent = String(best).padStart(6, '0'); lengthEl.textContent = String(game.player.growth).padStart(3, '0'); document.querySelector('#lives').textContent = String(game.lives).padStart(2, '0'); }
 function draw() {
   c.fillStyle = '#030614'; c.fillRect(0, 0, canvas.width, canvas.height);
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-    if (grid[y][x] === '#') { c.fillStyle = '#2946b7'; c.fillRect(x*T, y*T, T, T); c.fillStyle = '#091345'; c.fillRect(x*T+3, y*T+3, T-6, T-6); }
+  // A continuous maze: only the exposed faces receive an outline. This keeps joined wall
+  // cells from becoming a checkerboard of differently thick little squares.
+  c.fillStyle = '#14277d';
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (grid[y][x] === '#') c.fillRect(x*T, y*T, T, T);
+  c.fillStyle = '#5576ee';
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (grid[y][x] === '#') {
+    const px = x * T, py = y * T;
+    if (!inBounds(x, y - 1) || grid[y - 1][x] !== '#') c.fillRect(px, py, T, 2);
+    if (!inBounds(x, y + 1) || grid[y + 1][x] !== '#') c.fillRect(px, py + T - 2, T, 2);
+    if (!inBounds(x - 1, y) || grid[y][x - 1] !== '#') c.fillRect(px, py, 2, T);
+    if (!inBounds(x + 1, y) || grid[y][x + 1] !== '#') c.fillRect(px + T - 2, py, 2, T);
   }
   c.fillStyle = '#f5d9b5'; for (const key of game.pellets) { const [x,y] = key.split(',').map(Number); c.fillRect(center(x)-2, center(y)-2, 4, 4); }
   for (const key of game.sparks) { const [x,y] = key.split(',').map(Number); c.fillStyle = '#fff'; c.fillRect(center(x)-5, center(y)-5, 10, 10); c.fillStyle = '#68eaff'; c.fillRect(center(x)-2, center(y)-2, 4, 4); }

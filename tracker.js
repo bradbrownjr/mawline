@@ -3,11 +3,15 @@ import createLibopenmpt from './vendor/libopenmpt/libopenmpt.js';
 // Small, deliberately self-contained libopenmpt player. The module is loaded only after
 // a gesture, which is required by browsers before they allow sound.
 export class TrackerMusic {
-  constructor() { this.ctx = null; this.node = null; this.module = null; this.muted = false; this.loading = null; }
+  constructor() { this.ctx = null; this.node = null; this.module = null; this.muted = false; this.loading = null; this.playing = false; }
   async play() {
+    this.playing = true;
     if (this.muted) return;
     if (!this.loading && !this.ctx) this.loading = this.load();
     await this.loading;
+    // Loading module audio can take longer than a button press. Honor a pause that happened
+    // while that work was in flight instead of unexpectedly bringing the song back.
+    if (!this.playing || this.muted || !this.ctx || !this.node) return;
     await this.ctx.resume();
     if (this.node.port) this.node.port.postMessage('play');
   }
@@ -44,8 +48,8 @@ export class TrackerMusic {
       lib._free(lp); lib._free(rp);
     };
   }
-  pause() { this.ctx?.suspend(); }
-  resume() { if (!this.muted) this.ctx?.resume(); }
+  pause() { this.playing = false; this.ctx?.suspend(); }
+  resume() { if (!this.muted) { this.playing = true; this.ctx?.resume(); } }
   stop() { if (this.node?.port) this.node.port.postMessage('stop'); else if (this.module) this.module.lib._openmpt_module_set_position_seconds(this.module.mod, 0); }
   toggle() { this.muted = !this.muted; if (this.muted) this.pause(); else this.play(); }
 }

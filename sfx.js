@@ -2,20 +2,25 @@
 // or extra media files are required.
 export class ArcadeSounds {
   constructor() { this.context = null; this.muted = false; }
-  tone(frequency, seconds, type = 'square', sweep = 0, volume = 0.045) {
+  tone(frequency, seconds, type = 'square', sweep = 0, volume = 0.045, at = 0) {
     if (this.muted) return;
     const ctx = this.context ??= new AudioContext();
     const osc = ctx.createOscillator(), gain = ctx.createGain();
-    osc.type = type; osc.frequency.setValueAtTime(frequency, ctx.currentTime);
-    if (sweep) osc.frequency.exponentialRampToValueAtTime(Math.max(30, frequency + sweep), ctx.currentTime + seconds);
-    gain.gain.setValueAtTime(volume, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + seconds);
+    const start = ctx.currentTime + at;
+    osc.type = type; osc.frequency.setValueAtTime(frequency, start);
+    if (sweep) osc.frequency.exponentialRampToValueAtTime(Math.max(30, frequency + sweep), start + seconds);
+    // A small attack avoids clicks; the fast release keeps pellet runs crisp.
+    gain.gain.setValueAtTime(.0001, start); gain.gain.exponentialRampToValueAtTime(volume, start + .004);
+    gain.gain.exponentialRampToValueAtTime(.0001, start + seconds);
     osc.connect(gain).connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + seconds);
   }
-  dot() { this.tone(520, .045, 'square', 110); }
-  power() { this.tone(180, .24, 'sawtooth', 620, .06); }
-  ghost() { this.tone(760, .12, 'square', 400, .055); }
-  fruit() { this.tone(340, .2, 'triangle', 700, .055); }
-  cut() { this.tone(210, .12, 'sawtooth', -120, .06); }
-  death() { this.tone(480, .55, 'sawtooth', -430, .075); }
+  notes(notes, type = 'square', volume = .05) { let at = .005; for (const [frequency, ms, sweep = 0] of notes) { const seconds = ms / 1000; this.tone(frequency, seconds, type, sweep, volume, at); at += seconds; } }
+  coin() { this.notes([[1047, 70], [1319, 210]], 'square', .07); }
+  dot() { this.notes([[740, 38, 55]], 'square', .035); }
+  power() { this.notes([[196, 65, 240], [294, 65, 350], [440, 130, 520]], 'sawtooth', .055); }
+  ghost() { this.notes([[523, 55], [659, 55], [784, 130]], 'square', .06); }
+  fruit() { this.notes([[392, 60], [523, 60], [659, 130]], 'triangle', .06); }
+  cut() { this.notes([[300, 70, -120], [180, 110, -70]], 'sawtooth', .055); }
+  death() { this.notes([[520, 100, -180], [360, 120, -180], [220, 280, -130]], 'sawtooth', .075); }
   toggle() { this.muted = !this.muted; }
 }
