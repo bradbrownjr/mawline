@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#070b1b">
+    <title>Mawline</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>MAWLINE</h1>
+        <div class="tag">MAZE-CHASE / TAIL-EATER</div>
+      </header>
+      <canvas id="game" width="448" height="544" aria-label="Mawline game board"></canvas>
+      <section class="hud" aria-live="polite">
+        <span>SCORE <b id="score">000000</b></span><span>BEST <b id="best">000000</b></span>
+        <span>LEN <b id="length">008</b> PX</span><span id="state">READY</span>
+      </section>
+      <p class="controls">ARROWS / WASD steer &middot; SPACE start or pause &middot; M music</p>
+      <p class="rules">Dots add 1 pixel. Spectres add 10. Fruit adds 20. A spark makes your tail edible.</p>
+      <button id="start" type="button">INSERT COIN</button>
+    </main>
+    <script type="module" src="game.js"></script>
+  </body>
+</html>
