@@ -15,6 +15,8 @@ For example: `python3 -m http.server 8080` and visit `http://localhost:8080`.
 - Dots grow the tail by one pixel. Spectres grow it by ten; fruit grows it by twenty.
 - A spark puts the maze into a power state. During that time, eat spectres or deliberately
   cut through your own tail to turn dangerous length into points and room to manoeuvre.
+- Outside the power state, touching the older part of the tail costs a core.
+- Open side tunnels wrap from one edge of the maze to the other.
 - Score gains a small length-scaled survival bonus, so a long clean run compounds value.
 
 ## Music and third-party code

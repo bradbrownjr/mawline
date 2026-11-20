@@ -37,7 +37,8 @@ function freshGame() {
 }
 function cell(entity) { return [Math.round((entity.x - T / 2) / T), Math.round((entity.y - T / 2) / T)]; }
 function nearCenter(p) { return Math.abs(p.x - center(Math.round((p.x - T / 2) / T))) < 2 && Math.abs(p.y - center(Math.round((p.y - T / 2) / T))) < 2; }
-function canMove(p, d) { const [x, y] = cell(p); return passable(x + d[0], y + d[1]); }
+// A horizontal move out of an open edge is a legal tunnel transition, not a wall.
+function canMove(p, d) { const [x, y] = cell(p); if (d[0] < 0 && x === 0) return passable(W - 1, y); if (d[0] > 0 && x === W - 1) return passable(0, y); return passable(x + d[0], y + d[1]); }
 function move(p, d, amount) { p.x += d[0] * amount; p.y += d[1] * amount; if (p.x < -T / 2) p.x = canvas.width - T / 2; if (p.x > canvas.width - T / 2) p.x = -T / 2; }
 function resetActors() {
   const p = game.player; Object.assign(p, { x: center(14), y: center(20), dir: [-1, 0], want: [-1, 0], trail: [] });
@@ -50,6 +51,13 @@ function eatTail() {
     const cut = p.trail.length - i; p.trail.splice(i); p.growth = Math.max(8, p.growth - cut); game.score += cut * 5; sfx.cut(); return true;
   } return false;
 }
+function hitsTail() {
+  const p = game.player;
+  // The first pixels are always directly behind the head. Older points are the part the
+  // player can genuinely loop into.
+  for (let i = 12; i < p.trail.length; i++) if (dist(p, p.trail[i]) < 7) return true;
+  return false;
+}
 function advance(dt) {
   if (game.dying > 0) { game.dying -= dt; if (game.dying <= 0) { resetActors(); game.running = true; stateEl.textContent = 'RUN'; music.play(); } return; }
   if (!game.running || game.paused || game.over) return;
@@ -61,7 +69,9 @@ function advance(dt) {
   if (game.sparks.delete(key)) { game.power = 8; game.score += 50; p.growth += 2; sfx.power(); }
   if (game.fruit && dist(p, game.fruit) < 10) { p.growth += 20; game.score += 500; game.fruit = null; sfx.fruit(); }
   if (!game.fruit && game.pellets.size < game.fruitAt) { game.fruit = { x: center(14), y: center(17) }; game.fruitAt -= 55; }
-  game.power = Math.max(0, game.power - dt); eatTail();
+  game.power = Math.max(0, game.power - dt);
+  if (game.power > 0) eatTail();
+  else if (hitsTail()) { die(); return; }
   const elapsed = (performance.now() - game.born) / 1000;
   for (const g of game.ghosts) {
     if (g.returning) { const target = { x: center(g.home[0]), y: center(g.home[1]) }; const dx = target.x - g.x, dy = target.y - g.y, d = Math.hypot(dx, dy); if (d < 3) { g.x = target.x; g.y = target.y; g.returning = false; g.revive = 1.1; } else { g.x += dx / d * 150 * dt; g.y += dy / d * 150 * dt; } continue; }
