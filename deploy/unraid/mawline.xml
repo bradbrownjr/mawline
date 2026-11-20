@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>mawline</Name>
+  <Repository>ghcr.io/bradbrownjr/mawline:edge</Repository>
+  <Registry>https://github.com/bradbrownjr/mawline/pkgs/container/mawline</Registry>
+  <Network>bridge</Network>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/bradbrownjr/mawline/issues</Support>
+  <Project>https://github.com/bradbrownjr/mawline</Project>
+  <Overview>Mawline is an original 8-bit maze-chase game. This stateless container serves the game on port 80. Put it behind HTTPS in Caddy so the browser can use the low-latency tracker-music player.</Overview>
+  <Category>Games:</Category>
+  <WebUI>http://[IP]:[PORT:80]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/bradbrownjr/mawline/main/deploy/unraid/mawline.xml</TemplateURL>
+  <ExtraParams>--health-cmd=&quot;wget -q -O /dev/null http://127.0.0.1/healthz&quot; --health-interval=30s --health-timeout=3s --health-retries=3</ExtraParams>
+  <Config Name="Web UI port" Target="80" Default="8420" Mode="tcp" Description="Host port for Mawline's web page." Type="Port" Display="always" Required="true" Mask="false">8420</Config>
+</Container>

@@ -28,6 +28,11 @@ Arcade effects are generated in the browser with Web Audio rather than sampled f
 The low-latency player is used over HTTPS; a browser-compatible fallback lets the song play
 when testing from an HTTP LAN address.
 
+## Deployment
+
+The public Docker image is `ghcr.io/bradbrownjr/mawline:edge`. See
+[self-hosting](docs/SELF-HOSTING.md) for Docker, Unraid, and reverse-proxy setup.
+
 ## Prior art and design position
 
 The basic premise is not new. Existing examples include [Pac-Snake](https://kuroo-kyo.itch.io/pac-snake),
