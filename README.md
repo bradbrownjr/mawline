@@ -25,6 +25,8 @@ For example: `python3 -m http.server 8080` and visit `http://localhost:8080`.
 with source, license, SHA-256, and duration recorded in `music/manifest.json`.
 The browser player uses libopenmpt; its license is at `vendor/libopenmpt/LICENSE`.
 Arcade effects are generated in the browser with Web Audio rather than sampled from another game.
+The low-latency player is used over HTTPS; a browser-compatible fallback lets the song play
+when testing from an HTTP LAN address.
 
 ## Prior art and design position
 
