@@ -103,8 +103,18 @@ function draw() {
   c.fillStyle = '#f5d9b5'; for (const key of game.pellets) { const [x,y] = key.split(',').map(Number); c.fillRect(center(x)-2, center(y)-2, 4, 4); }
   for (const key of game.sparks) { const [x,y] = key.split(',').map(Number); c.fillStyle = '#fff'; c.fillRect(center(x)-5, center(y)-5, 10, 10); c.fillStyle = '#68eaff'; c.fillRect(center(x)-2, center(y)-2, 4, 4); }
   if (game.fruit) { c.fillStyle = '#ff557f'; c.fillRect(game.fruit.x-6, game.fruit.y-6, 12, 12); c.fillStyle = '#74e173'; c.fillRect(game.fruit.x-2, game.fruit.y-9, 5, 4); }
-  const p = game.player; c.fillStyle = game.power > 0 && Math.floor(game.power*8)%2 ? '#f7f1ff' : '#ffe15b'; for (const pt of p.trail) c.fillRect(Math.round(pt.x)-3, Math.round(pt.y)-3, 6, 6);
-  if (game.dying > 0) { c.strokeStyle = '#ff557f'; c.lineWidth = 3; c.beginPath(); c.arc(p.x, p.y, (1.15-game.dying)*20, 0, Math.PI*2); c.stroke(); } else { c.beginPath(); c.arc(p.x, p.y, 7, .25 + Math.atan2(p.dir[1],p.dir[0]), 6.03 + Math.atan2(p.dir[1],p.dir[0])); c.lineTo(p.x,p.y); c.fill(); }
+  const p = game.player;
+  const deathProgress = game.dying > 0 ? 1 - game.dying / 1.15 : 0;
+  const remainingTail = game.dying > 0 ? Math.ceil(p.trail.length * Math.max(0, 1 - deathProgress * 1.45)) : p.trail.length;
+  c.fillStyle = game.power > 0 && Math.floor(game.power*8)%2 ? '#f7f1ff' : '#ffe15b';
+  // On death the tail retracts from its far end into the mouth before the head collapses.
+  for (const pt of p.trail.slice(0, remainingTail)) c.fillRect(Math.round(pt.x)-3, Math.round(pt.y)-3, 6, 6);
+  if (game.dying > 0) {
+    const collapse = Math.max(0, 1 - Math.max(0, deathProgress - .5) / .32);
+    const pop = Math.max(0, (deathProgress - .78) / .22);
+    if (collapse > 0) { c.beginPath(); c.arc(p.x, p.y, 7 * collapse, 0, Math.PI * 2); c.fill(); }
+    if (pop > 0) { c.strokeStyle = '#ff557f'; c.lineWidth = 3; c.beginPath(); c.arc(p.x, p.y, 3 + pop * 14, 0, Math.PI * 2); c.stroke(); }
+  } else { c.beginPath(); c.arc(p.x, p.y, 7, .25 + Math.atan2(p.dir[1],p.dir[0]), 6.03 + Math.atan2(p.dir[1],p.dir[0])); c.lineTo(p.x,p.y); c.fill(); }
   for (const g of game.ghosts) { if (g.returning) { c.fillStyle='#e9f5ff'; c.fillRect(g.x-5,g.y-3,3,4); c.fillRect(g.x+2,g.y-3,3,4); c.fillStyle='#22377f'; c.fillRect(g.x-4,g.y-2,2,2); c.fillRect(g.x+3,g.y-2,2,2); continue; } c.fillStyle = g.revive > 0 ? '#394a81' : (game.power > 0 ? '#3854c9' : g.color); c.fillRect(g.x-6,g.y-5,12,11); c.fillRect(g.x-5,g.y-7,10,5); c.fillStyle='#fff'; c.fillRect(g.x-4,g.y-3,3,3); c.fillRect(g.x+2,g.y-3,3,3); }
   if (!game.running && !game.over) { c.fillStyle = '#ffe15b'; c.font = 'bold 16px monospace'; c.textAlign='center'; c.fillText('PRESS SPACE', canvas.width/2, 385); }
 }
