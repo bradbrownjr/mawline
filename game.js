@@ -39,7 +39,7 @@ function cell(entity) { return [Math.round((entity.x - T / 2) / T), Math.round((
 function nearCenter(p) { return Math.abs(p.x - center(Math.round((p.x - T / 2) / T))) < 2 && Math.abs(p.y - center(Math.round((p.y - T / 2) / T))) < 2; }
 // A horizontal move out of an open edge is a legal tunnel transition, not a wall.
 function canMove(p, d) { const [x, y] = cell(p); if (d[0] < 0 && x === 0) return passable(W - 1, y); if (d[0] > 0 && x === W - 1) return passable(0, y); return passable(x + d[0], y + d[1]); }
-function move(p, d, amount) { p.x += d[0] * amount; p.y += d[1] * amount; if (p.x < -T / 2) p.x = canvas.width - T / 2; if (p.x > canvas.width - T / 2) p.x = -T / 2; }
+function move(p, d, amount) { p.x += d[0] * amount; p.y += d[1] * amount; if (p.x <= -T / 2) p.x = canvas.width - T / 2; if (p.x >= canvas.width - T / 2) p.x = -T / 2; }
 function resetActors() {
   const p = game.player; Object.assign(p, { x: center(14), y: center(20), dir: [-1, 0], want: [-1, 0], trail: [] });
   game.power = 0;
