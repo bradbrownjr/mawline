@@ -22,6 +22,7 @@ For example: `python3 -m http.server 8080` and visit `http://localhost:8080`.
 `music/peachy_chip.xm` is **Peachy Chip** by Drozerix, a public-domain tracker module,
 with source, license, SHA-256, and duration recorded in `music/manifest.json`.
 The browser player uses libopenmpt; its license is at `vendor/libopenmpt/LICENSE`.
+Arcade effects are generated in the browser with Web Audio rather than sampled from another game.
 
 ## Prior art and design position
 
