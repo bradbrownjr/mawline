@@ -12,7 +12,7 @@ export class ArcadeSounds {
     // A small attack avoids clicks; the fast release keeps pellet runs crisp.
     gain.gain.setValueAtTime(.0001, start); gain.gain.exponentialRampToValueAtTime(volume, start + .004);
     gain.gain.exponentialRampToValueAtTime(.0001, start + seconds);
-    osc.connect(gain).connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + seconds);
+    osc.connect(gain).connect(ctx.destination); osc.start(start); osc.stop(start + seconds + .01);
   }
   notes(notes, type = 'square', volume = .05) { let at = .005; for (const [frequency, ms, sweep = 0] of notes) { const seconds = ms / 1000; this.tone(frequency, seconds, type, sweep, volume, at); at += seconds; } }
   coin() { this.notes([[1047, 70], [1319, 210]], 'square', .07); }

@@ -30,7 +30,7 @@ function freshGame() {
     if (grid[y][x] === 'o') sparks.add(`${x},${y}`);
   }
   game = { running: false, paused: false, over: false, gameOverTimer: 0, dying: 0, lives: 3, score: 0, born: 0, pellets, sparks,
-    player: { x: center(14), y: center(20), dir: [-1, 0], want: [-1, 0], trail: [], growth: 8 },
+    player: { x: center(14), y: center(13), dir: [-1, 0], want: [-1, 0], trail: [], growth: 8 },
     ghosts: [[13, 9, '#ff557f'], [14, 9, '#58e6ed'], [13, 10, '#ff9c4d'], [14, 10, '#c887ff']].map((v, i) => ({ x: center(v[0]), y: center(v[1]), dir: i < 2 ? [1, 0] : [-1, 0], color: v[2], home: [v[0], v[1]], returning: false, revive: 0 })),
     fruit: null, power: 0, fruitAt: 70 };
   syncHud();
@@ -41,7 +41,7 @@ function nearCenter(p) { return Math.abs(p.x - center(Math.round((p.x - T / 2) /
 function canMove(p, d) { const [x, y] = cell(p); if (d[0] < 0 && x === 0) return passable(W - 1, y); if (d[0] > 0 && x === W - 1) return passable(0, y); return passable(x + d[0], y + d[1]); }
 function move(p, d, amount) { p.x += d[0] * amount; p.y += d[1] * amount; if (p.x <= -T / 2) p.x = canvas.width - T / 2; if (p.x >= canvas.width - T / 2) p.x = -T / 2; }
 function resetActors() {
-  const p = game.player; Object.assign(p, { x: center(14), y: center(20), dir: [-1, 0], want: [-1, 0], trail: [] });
+  const p = game.player; Object.assign(p, { x: center(14), y: center(13), dir: [-1, 0], want: [-1, 0], trail: [] });
   game.power = 0;
   for (const g of game.ghosts) { g.x = center(g.home[0]); g.y = center(g.home[1]); g.returning = false; g.revive = 1; }
 }
