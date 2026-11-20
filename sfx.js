@@ -16,7 +16,8 @@ export class ArcadeSounds {
   }
   notes(notes, type = 'square', volume = .05) { let at = .005; for (const [frequency, ms, sweep = 0] of notes) { const seconds = ms / 1000; this.tone(frequency, seconds, type, sweep, volume, at); at += seconds; } }
   coin() { this.notes([[1047, 70], [1319, 210]], 'square', .07); }
-  dot() { this.notes([[740, 38, 55]], 'square', .035); }
+  // Pellets are collected continuously, so this stays deliberately soft and rounded.
+  dot() { this.notes([[880, 24, 35]], 'triangle', .012); }
   power() { this.notes([[196, 65, 240], [294, 65, 350], [440, 130, 520]], 'sawtooth', .055); }
   ghost() { this.notes([[523, 55], [659, 55], [784, 130]], 'square', .06); }
   fruit() { this.notes([[392, 60], [523, 60], [659, 130]], 'triangle', .06); }
