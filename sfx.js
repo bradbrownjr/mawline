@@ -23,5 +23,6 @@ export class ArcadeSounds {
   fruit() { this.notes([[392, 60], [523, 60], [659, 130]], 'triangle', .06); }
   cut() { this.notes([[300, 70, -120], [180, 110, -70]], 'sawtooth', .055); }
   death() { this.notes([[523, 55, -90], [392, 65, -80], [262, 120, -70]], 'triangle', .025); }
+  gameOver() { this.notes([[392, 90, -30], [330, 90, -25], [262, 120, -20], [196, 260, -15]], 'triangle', .04); }
   toggle() { this.muted = !this.muted; }
 }

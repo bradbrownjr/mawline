@@ -29,7 +29,7 @@ function freshGame() {
     if (grid[y][x] === '.') pellets.add(`${x},${y}`);
     if (grid[y][x] === 'o') sparks.add(`${x},${y}`);
   }
-  game = { running: false, paused: false, over: false, dying: 0, lives: 3, score: 0, born: 0, pellets, sparks,
+  game = { running: false, paused: false, over: false, gameOverTimer: 0, dying: 0, lives: 3, score: 0, born: 0, pellets, sparks,
     player: { x: center(14), y: center(20), dir: [-1, 0], want: [-1, 0], trail: [], growth: 8 },
     ghosts: [[13, 9, '#ff557f'], [14, 9, '#58e6ed'], [13, 10, '#ff9c4d'], [14, 10, '#c887ff']].map((v, i) => ({ x: center(v[0]), y: center(v[1]), dir: i < 2 ? [1, 0] : [-1, 0], color: v[2], home: [v[0], v[1]], returning: false, revive: 0 })),
     fruit: null, power: 0, fruitAt: 70 };
@@ -59,7 +59,19 @@ function hitsTail() {
   return false;
 }
 function advance(dt) {
-  if (game.dying > 0) { game.dying -= dt; if (game.dying <= 0) { resetActors(); game.running = true; stateEl.textContent = 'RUN'; music.play(); } return; }
+  if (game.dying > 0) {
+    game.dying -= dt;
+    if (game.dying <= 0) {
+      if (game.over) { sfx.gameOver(); stateEl.textContent = 'GAME OVER'; }
+      else { resetActors(); game.running = true; stateEl.textContent = 'RUN'; music.play(); }
+    }
+    return;
+  }
+  if (game.over) {
+    game.gameOverTimer -= dt;
+    if (game.gameOverTimer <= 0) { freshGame(); stateEl.textContent = 'READY'; startButton.textContent = 'INSERT COIN'; }
+    return;
+  }
   if (!game.running || game.paused || game.over) return;
   const p = game.player; const before = { x: p.x, y: p.y };
   if (nearCenter(p)) { if (canMove(p, p.want)) p.dir = p.want; else if (!canMove(p, p.dir)) return; }
@@ -83,8 +95,8 @@ function advance(dt) {
   if (game.pellets.size === 0) { game.score += 1000; freshGame(); start(); }
   game.score += Math.max(0, Math.floor(p.growth / 24 * dt)); syncHud();
 }
-function die() { game.lives--; sfx.death(); music.pause(); if (game.lives <= 0) { game.over = true; game.running = false; stateEl.textContent = 'SYSTEM FAIL'; startButton.textContent = 'RETRY'; if (game.score > best) { best = game.score; localStorage.setItem('mawline-best', String(best)); } } else { game.running = false; game.dying = 1.15; stateEl.textContent = 'REBUILD'; } syncHud(); }
-function start() { if (game.over) freshGame(); sfx.coin(); game.running = true; game.paused = false; game.born = performance.now(); stateEl.textContent = 'RUN'; startButton.textContent = 'PAUSE'; music.play(); }
+function die() { game.lives--; sfx.death(); music.pause(); game.running = false; game.dying = 1.15; if (game.lives <= 0) { game.over = true; game.gameOverTimer = 2.6; stateEl.textContent = 'LAST CORE'; if (game.score > best) { best = game.score; localStorage.setItem('mawline-best', String(best)); } } else stateEl.textContent = 'REBUILD'; syncHud(); }
+function start() { sfx.coin(); game.running = true; game.paused = false; game.born = performance.now(); stateEl.textContent = 'RUN'; startButton.textContent = 'PAUSE'; music.play(); }
 function syncHud() { scoreEl.textContent = String(Math.floor(game.score)).padStart(6, '0'); bestEl.textContent = String(best).padStart(6, '0'); lengthEl.textContent = String(game.player.growth).padStart(3, '0'); document.querySelector('#lives').textContent = String(game.lives).padStart(2, '0'); }
 function draw() {
   c.fillStyle = '#030614'; c.fillRect(0, 0, canvas.width, canvas.height);
@@ -116,9 +128,10 @@ function draw() {
     if (pop > 0) { c.strokeStyle = '#ff557f'; c.lineWidth = 3; c.beginPath(); c.arc(p.x, p.y, 3 + pop * 14, 0, Math.PI * 2); c.stroke(); }
   } else { c.beginPath(); c.arc(p.x, p.y, 7, .25 + Math.atan2(p.dir[1],p.dir[0]), 6.03 + Math.atan2(p.dir[1],p.dir[0])); c.lineTo(p.x,p.y); c.fill(); }
   for (const g of game.ghosts) { if (g.returning) { c.fillStyle='#e9f5ff'; c.fillRect(g.x-5,g.y-3,3,4); c.fillRect(g.x+2,g.y-3,3,4); c.fillStyle='#22377f'; c.fillRect(g.x-4,g.y-2,2,2); c.fillRect(g.x+3,g.y-2,2,2); continue; } c.fillStyle = g.revive > 0 ? '#394a81' : (game.power > 0 ? '#3854c9' : g.color); c.fillRect(g.x-6,g.y-5,12,11); c.fillRect(g.x-5,g.y-7,10,5); c.fillStyle='#fff'; c.fillRect(g.x-4,g.y-3,3,3); c.fillRect(g.x+2,g.y-3,3,3); }
-  if (!game.running && !game.over) { c.fillStyle = '#ffe15b'; c.font = 'bold 16px monospace'; c.textAlign='center'; c.fillText('PRESS SPACE', canvas.width/2, 385); }
+  if (game.over && game.dying <= 0) { c.fillStyle = '#ff557f'; c.font = 'bold 20px monospace'; c.textAlign='center'; c.fillText('GAME OVER', canvas.width / 2, 385); }
+  else if (!game.running && !game.over) { c.fillStyle = '#ffe15b'; c.font = 'bold 16px monospace'; c.textAlign='center'; c.fillText('PRESS SPACE', canvas.width/2, 385); }
 }
 function frame(now) { const dt = Math.min(.04, (now-last)/1000 || 0); last=now; advance(dt); draw(); requestAnimationFrame(frame); }
-window.addEventListener('keydown', (e) => { const d = dirs[e.key]; if (d) { e.preventDefault(); game.player.want = d; } if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!game.running && !game.dying) start(); else if (!game.dying) { game.paused=!game.paused; stateEl.textContent=game.paused?'PAUSE':'RUN'; if(game.paused) music.pause(); else music.resume(); } } if (e.key.toLowerCase()==='m') { music.toggle(); sfx.toggle(); } });
-startButton.addEventListener('click', () => { if (!game.running && !game.dying) start(); else if (!game.dying) { game.paused=!game.paused; game.paused ? music.pause() : music.resume(); stateEl.textContent=game.paused?'PAUSE':'RUN'; } });
+window.addEventListener('keydown', (e) => { const d = dirs[e.key]; if (d) { e.preventDefault(); game.player.want = d; } if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!game.running && !game.dying && !game.over) start(); else if (!game.dying && !game.over) { game.paused=!game.paused; stateEl.textContent=game.paused?'PAUSE':'RUN'; if(game.paused) music.pause(); else music.resume(); } } if (e.key.toLowerCase()==='m') { music.toggle(); sfx.toggle(); } });
+startButton.addEventListener('click', () => { if (!game.running && !game.dying && !game.over) start(); else if (!game.dying && !game.over) { game.paused=!game.paused; game.paused ? music.pause() : music.resume(); stateEl.textContent=game.paused?'PAUSE':'RUN'; } });
 freshGame(); requestAnimationFrame(frame);
